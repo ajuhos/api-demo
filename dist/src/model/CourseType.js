@@ -1,5 +1,5 @@
 "use strict";
-const ModelEdge_1 = require("../edges/ModelEdge");
+const ModelEdge_1 = require("../edges/memory/ModelEdge");
 class CourseTypeScheme {
 }
 exports.CourseTypeScheme = CourseTypeScheme;

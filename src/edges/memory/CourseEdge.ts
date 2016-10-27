@@ -1,7 +1,7 @@
 import {ApiEdgeDefinition, ApiEdgeError, OneToOneRelation} from "api-core";
-import {RawDataProvider} from "../data/RawDataProvider";
+import {RawDataProvider} from "../../data/RawDataProvider";
 import {ModelEdge} from "./ModelEdge";
-import {Course} from "../model/Course";
+import {Course} from "../../model/Course";
 
 export class CourseEdge extends ModelEdge<Course> {
     name = "course";

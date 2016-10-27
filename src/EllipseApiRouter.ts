@@ -1,4 +1,4 @@
-import {ApiEdgeDefinition, ApiEdgeError, ApiEdgeQueryResponse, Api} from "api-core";
+import {ApiEdgeDefinition, ApiEdgeError, ApiEdgeQueryResponse, Api, ApiRequestType} from "api-core";
 const Router = require('ellipse').Router;
 
 export class EllipseApiRouter extends Router {
@@ -20,7 +20,7 @@ export class EllipseApiRouter extends Router {
     apply = (app) => {
         let router = this;
 
-        app.get('/api/v:version/*', function(req, res, next) {
+        app.all('/api/v:version/*', function(req, res, next) {
             let index = router.apiVersions.indexOf(req.params.version);
             if(index == -1) {
                 this.error = new ApiEdgeError(400, "Unsupported API version");
@@ -33,7 +33,7 @@ export class EllipseApiRouter extends Router {
             }
         });
 
-        app.get('/api/*', function (req, res, next) {
+        app.all('/api/*', function (req, res, next) {
             if(!this.api) this.api = router.defaultApi;
             req.path = req.path.replace('/api/', '');
             next()
@@ -45,8 +45,26 @@ export class EllipseApiRouter extends Router {
                 try {
                     let request = this.api.parseRequest(req.path.split('/'));
                     if (req.query.fields) request.context.fields = req.query.fields.split(',');
+                    if (req.body) request.body = req.body;
+
+                    switch(req.method) {
+                        case "GET":
+                            request.type = ApiRequestType.Read;
+                            break;
+                        case "PUT":
+                            request.type = ApiRequestType.Create;
+                            break;
+                        case "POST":
+                        case "PATCH":
+                            request.type = ApiRequestType.Update;
+                            break;
+                        case "DELETE":
+                            request.type = ApiRequestType.Delete;
+                            break;
+                    }
 
                     console.log(request.path);
+
                     let query = this.api.buildQuery(request);
                     console.log(query.steps);
                     query.execute()

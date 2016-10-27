@@ -1,7 +1,7 @@
 import {ApiEdgeDefinition, ApiEdgeError} from "api-core";
-import {RawDataProvider} from "../data/RawDataProvider";
+import {RawDataProvider} from "../../data/RawDataProvider";
 import {ModelEdge} from "./ModelEdge";
-import {Class} from "../model/Class";
+import {Class} from "../../model/Class";
 
 export class ClassEdge extends ModelEdge<Class> {
     name = "class";

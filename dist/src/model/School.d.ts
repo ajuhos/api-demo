@@ -1,4 +1,4 @@
-import { Model } from "../edges/ModelEdge";
+import { Model } from "../edges/memory/ModelEdge";
 export interface SchoolScheme {
     id: string;
     name: string;

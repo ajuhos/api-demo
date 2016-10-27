@@ -1,4 +1,5 @@
 import {ApiEdgeDefinition, ApiEdgeError, ApiEdgeQueryContext, ApiEdgeQueryResponse, ApiEdgeQueryFilter, ApiEdgeQueryFilterType} from "api-core";
+const uuid = require('node-uuid');
 
 export class Model {
     id: string;
@@ -71,6 +72,9 @@ export class ModelEdge<ModelType extends Model> implements ApiEdgeDefinition {
 
     createEntry = (context: ApiEdgeQueryContext, body: any): Promise<ApiEdgeQueryResponse> => {
         return new Promise<ApiEdgeQueryResponse>((resolve) => {
+            body = body || {};
+            body.id = uuid.v4();
+
             let entry = this.createModel(body);
             this.provider.push(entry);
             resolve(new ApiEdgeQueryResponse(this.applyMapping(entry, context.fields)))
@@ -96,7 +100,7 @@ export class ModelEdge<ModelType extends Model> implements ApiEdgeDefinition {
         })
     };
 
-    removeEntry = (context: ApiEdgeQueryContext): Promise<ApiEdgeQueryResponse> => {
+    removeEntry = (context: ApiEdgeQueryContext, body: any): Promise<ApiEdgeQueryResponse> => {
         return new Promise<ApiEdgeQueryResponse>((resolve, reject) => {
             this.getEntry(context).then(entry => {
                 this.provider.splice(this.provider.indexOf(entry), 1);
@@ -124,7 +128,7 @@ export class ModelEdge<ModelType extends Model> implements ApiEdgeDefinition {
     };
 
     callMethod = (context: ApiEdgeQueryContext, body: any): Promise<ApiEdgeQueryResponse> => {
-        return this.methods[context.id](context, body);
+        return this.methods[""+context.id](context, body);
     }
 
 }

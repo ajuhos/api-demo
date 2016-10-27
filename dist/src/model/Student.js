@@ -1,5 +1,5 @@
 "use strict";
-const ModelEdge_1 = require("../edges/ModelEdge");
+const ModelEdge_1 = require("../edges/memory/ModelEdge");
 class Student extends ModelEdge_1.Model {
     constructor(obj) {
         super(obj);

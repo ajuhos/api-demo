@@ -1,6 +1,6 @@
 {
   "name": "api-demo",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Simple demo for the api-provider package.",
   "main": "index.js",
   "scripts": {
@@ -14,8 +14,8 @@
     "@types/mongoose": "^4.5.39",
     "@types/node-uuid": "0.0.28",
     "api-core": "git+https://github.com/ajuhos/api-core.git",
-    "api-model-mongoose": "0.0.1-alpha.1",
-    "api-provider-ellipse": "0.0.1-alpha.1",
+    "api-model-mongoose": "git+https://github.com/ajuhos/api-model-mongoose.git",
+    "api-provider-ellipse": "git+https://github.com/ajuhos/api-provider-ellipse.git",
     "body-parser": "^1.15.2",
     "ellipse": "^0.18.6-alpha.1",
     "es6-promise": "^4.0.5",

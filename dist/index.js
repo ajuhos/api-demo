@@ -1,12 +1,12 @@
 "use strict";
 const api_core_1 = require("api-core");
-const EllipseApiRouter_1 = require("./src/EllipseApiRouter");
+const api_model_mongoose_1 = require("api-model-mongoose");
+const api_provider_ellipse_1 = require("api-provider-ellipse");
 const mongoose = require("mongoose");
-const MongooseModelFactory_1 = require("./src/edges/mongodb/MongooseModelFactory");
 const Ellipse = require('ellipse'), app = new Ellipse;
 mongoose.Promise = global.Promise;
 mongoose.connect("mongodb://localhost/api-demo");
-const studentEdge = MongooseModelFactory_1.MongooseModelFactory.createModel("student", "students", {
+const studentEdge = api_model_mongoose_1.MongooseModelFactory.createModel("student", "students", {
     id: String,
     firstName: String,
     lastName: String,
@@ -14,21 +14,21 @@ const studentEdge = MongooseModelFactory_1.MongooseModelFactory.createModel("stu
     phone: String,
     schoolId: mongoose.Schema.Types.ObjectId,
     classId: mongoose.Schema.Types.ObjectId
-}), classEdge = MongooseModelFactory_1.MongooseModelFactory.createModel("class", "classes", {
+}), classEdge = api_model_mongoose_1.MongooseModelFactory.createModel("class", "classes", {
     id: String,
     name: String,
     semester: String,
     room: String,
     schoolId: mongoose.Schema.Types.ObjectId
-}), courseEdge = MongooseModelFactory_1.MongooseModelFactory.createModel("course", "courses", {
+}), courseEdge = api_model_mongoose_1.MongooseModelFactory.createModel("course", "courses", {
     id: String,
     name: String,
     classId: mongoose.Schema.Types.ObjectId,
     courseTypeId: mongoose.Schema.Types.ObjectId
-}), courseTypeEdge = MongooseModelFactory_1.MongooseModelFactory.createModel("courseType", "courseTypes", {
+}), courseTypeEdge = api_model_mongoose_1.MongooseModelFactory.createModel("courseType", "courseTypes", {
     id: String,
     name: String
-}), schoolEdge = MongooseModelFactory_1.MongooseModelFactory.createModel("school", "schools", {
+}), schoolEdge = api_model_mongoose_1.MongooseModelFactory.createModel("school", "schools", {
     id: String,
     name: String,
     address: String,
@@ -55,7 +55,7 @@ const api11 = new api_core_1.Api('1.1')
     .relation(new api_core_1.OneToManyRelation(schoolEdge, classEdge));
 app.use(require('body-parser').json());
 app.get('/favicon.ico', (req, res) => res.send(''));
-const router = new EllipseApiRouter_1.EllipseApiRouter(api11, api10);
+const router = new api_provider_ellipse_1.EllipseApiRouter(api11, api10);
 router.apply(app);
 app.listen(8080);
 //# sourceMappingURL=index.js.map

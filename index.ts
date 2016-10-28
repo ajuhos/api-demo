@@ -1,13 +1,8 @@
 import {ApiEdgeError, OneToOneRelation, OneToManyRelation, ApiEdgeQueryResponse, Api} from "api-core";
-import {StudentEdge} from "./src/edges/memory/StudentEdge";
-import {MongooseStudentEdge} from "./src/edges/mongodb/StudentEdge";
-import {ClassEdge} from "./src/edges/memory/ClassEdge";
-import {CourseEdge} from "./src/edges/memory/CourseEdge";
-import {CourseTypeEdge} from "./src/edges/memory/CourseTypeEdge";
-import {SchoolEdge} from "./src/edges/memory/SchoolEdge";
-import {EllipseApiRouter} from "./src/EllipseApiRouter";
+import {MongooseModelFactory} from "api-model-mongoose";
+import {EllipseApiRouter} from "api-provider-ellipse";
 import * as mongoose from "mongoose";
-import {MongooseModelFactory} from "./src/edges/mongodb/MongooseModelFactory";
+
 
 const Ellipse = require('ellipse'),
       app = new Ellipse;
@@ -77,7 +72,7 @@ const api11
     .relation(new OneToManyRelation(schoolEdge, classEdge));
 
 app.use(require('body-parser').json());
-app.get('/favicon.ico', (req, res) => res.send(''));
+app.get('/favicon.ico', (req: any, res: any) => res.send(''));
 
 const router = new EllipseApiRouter(api11, api10);
 router.apply(app);

@@ -13,8 +13,10 @@ class MongooseModelEdge {
                 let queryString = { _id: context.id };
                 this.applyFilters(queryString, context.filters);
                 let query = this.provider.findOne(queryString).lean();
-                if (context.fields)
+                if (context.fields.length)
                     query.select(context.fields.join(' '));
+                if (context.populatedFields.length)
+                    query.populate(context.populatedFields.join(' '));
                 query.then(entry => {
                     resolve(new api_core_1.ApiEdgeQueryResponse(entry));
                 }).catch(reject);
@@ -25,8 +27,10 @@ class MongooseModelEdge {
                 let queryString = {};
                 this.applyFilters(queryString, context.filters);
                 let query = this.provider.find(queryString).lean();
-                if (context.fields)
+                if (context.fields.length)
                     query.select(context.fields.join(' '));
+                if (context.populatedFields.length)
+                    query.populate(context.populatedFields.join(' '));
                 if (context.sortBy) {
                     let sortOptions = {};
                     context.sortBy.forEach((sort) => sortOptions["" + sort[0]] = sort[1]);

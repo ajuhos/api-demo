@@ -1,19 +1,41 @@
 "use strict";
 const api_core_1 = require("api-core");
-const StudentEdge_1 = require("./src/edges/memory/StudentEdge");
-const StudentEdge_2 = require("./src/edges/mongodb/StudentEdge");
-const ClassEdge_1 = require("./src/edges/memory/ClassEdge");
-const CourseEdge_1 = require("./src/edges/memory/CourseEdge");
-const CourseTypeEdge_1 = require("./src/edges/memory/CourseTypeEdge");
-const SchoolEdge_1 = require("./src/edges/memory/SchoolEdge");
 const EllipseApiRouter_1 = require("./src/EllipseApiRouter");
 const mongoose = require("mongoose");
+const MongooseModelFactory_1 = require("./src/edges/mongodb/MongooseModelFactory");
 const Ellipse = require('ellipse'), app = new Ellipse;
 mongoose.Promise = global.Promise;
 mongoose.connect("mongodb://localhost/api-demo");
-const studentEdge = new StudentEdge_1.StudentEdge, mongooseStudentEdge = new StudentEdge_2.MongooseStudentEdge, classEdge = new ClassEdge_1.ClassEdge, courseEdge = new CourseEdge_1.CourseEdge, courseTypeEdge = new CourseTypeEdge_1.CourseTypeEdge, schoolEdge = new SchoolEdge_1.SchoolEdge;
+const studentEdge = MongooseModelFactory_1.MongooseModelFactory.createModel("student", "students", {
+    id: String,
+    firstName: String,
+    lastName: String,
+    email: String,
+    phone: String,
+    schoolId: mongoose.Schema.Types.ObjectId,
+    classId: mongoose.Schema.Types.ObjectId
+}), classEdge = MongooseModelFactory_1.MongooseModelFactory.createModel("class", "classes", {
+    id: String,
+    name: String,
+    semester: String,
+    room: String,
+    schoolId: mongoose.Schema.Types.ObjectId
+}), courseEdge = MongooseModelFactory_1.MongooseModelFactory.createModel("course", "courses", {
+    id: String,
+    name: String,
+    classId: mongoose.Schema.Types.ObjectId,
+    courseTypeId: mongoose.Schema.Types.ObjectId
+}), courseTypeEdge = MongooseModelFactory_1.MongooseModelFactory.createModel("courseType", "courseTypes", {
+    id: String,
+    name: String
+}), schoolEdge = MongooseModelFactory_1.MongooseModelFactory.createModel("school", "schools", {
+    id: String,
+    name: String,
+    address: String,
+    phone: String
+});
 const api10 = new api_core_1.Api('1.0')
-    .edge(mongooseStudentEdge);
+    .edge(studentEdge);
 const api11 = new api_core_1.Api('1.1')
     .edge(studentEdge)
     .edge(classEdge)
@@ -24,6 +46,7 @@ const api11 = new api_core_1.Api('1.1')
     .relation(new api_core_1.OneToManyRelation(courseTypeEdge, courseEdge))
     .relation(new api_core_1.OneToManyRelation(studentEdge, courseEdge))
     .relation(new api_core_1.OneToOneRelation(studentEdge, classEdge))
+    .relation(new api_core_1.OneToOneRelation(studentEdge, schoolEdge))
     .relation(new api_core_1.OneToOneRelation(classEdge, schoolEdge))
     .relation(new api_core_1.OneToOneRelation(courseEdge, classEdge))
     .relation(new api_core_1.OneToManyRelation(classEdge, studentEdge))
@@ -31,6 +54,7 @@ const api11 = new api_core_1.Api('1.1')
     .relation(new api_core_1.OneToManyRelation(schoolEdge, studentEdge))
     .relation(new api_core_1.OneToManyRelation(schoolEdge, classEdge));
 app.use(require('body-parser').json());
+app.get('/favicon.ico', (req, res) => res.send(''));
 const router = new EllipseApiRouter_1.EllipseApiRouter(api11, api10);
 router.apply(app);
 app.listen(8080);

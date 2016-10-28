@@ -4,7 +4,8 @@ import * as mongoose from "mongoose";
 export declare class MongooseModelEdge<T extends mongoose.Document> implements ApiEdgeDefinition {
     name: string;
     pluralName: string;
-    protected provider: mongoose.Model<T>;
+    idField: string;
+    provider: mongoose.Model<T>;
     methods: any;
     relations: never[];
     inspect: () => string;
@@ -13,6 +14,7 @@ export declare class MongooseModelEdge<T extends mongoose.Document> implements A
     getEntry: (context: ApiEdgeQueryContext) => Promise<ApiEdgeQueryResponse>;
     listEntries: (context: ApiEdgeQueryContext) => Promise<ApiEdgeQueryResponse>;
     createEntry: (context: ApiEdgeQueryContext, body: any) => Promise<ApiEdgeQueryResponse>;
+    patchEntry: (context: ApiEdgeQueryContext, body: any) => Promise<ApiEdgeQueryResponse>;
     updateEntry: (context: ApiEdgeQueryContext, body: any) => Promise<ApiEdgeQueryResponse>;
     updateEntries: () => Promise<ApiEdgeQueryResponse>;
     removeEntry: (context: ApiEdgeQueryContext, body: any) => Promise<ApiEdgeQueryResponse>;

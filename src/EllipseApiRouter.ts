@@ -44,19 +44,43 @@ export class EllipseApiRouter extends Router {
             else {
                 try {
                     let request = this.api.parseRequest(req.path.split('/'));
-                    if (req.query.fields) request.context.fields = req.query.fields.split(',');
-                    if (req.body) request.body = req.body;
+
+                    if (req.query.fields)
+                        request.context.fields = req.query.fields.split(',');
+
+                    if (req.query.sort)
+                        req.query.sort.split(',')
+                            .forEach((s: string) =>
+                                request.context.sort(s.substring(s[0] == '-' ? 1 : 0), s[0] !== '-'));
+
+                    let limit = +req.query.limit,
+                        skip = +req.query.skip,
+                        page = +req.query.page;
+
+                    if(limit === limit ||
+                        skip === skip ||
+                        page === page) {
+                        limit = limit || 10;
+                        if(page) skip = (page-1) * limit;
+                        else skip = skip || 0;
+                        request.context.paginate(skip, limit);
+                    }
+
+                    if (req.body)
+                        request.body = req.body;
 
                     switch(req.method) {
                         case "GET":
                             request.type = ApiRequestType.Read;
                             break;
-                        case "PUT":
+                        case "POST":
                             request.type = ApiRequestType.Create;
                             break;
-                        case "POST":
-                        case "PATCH":
+                        case "PUT":
                             request.type = ApiRequestType.Update;
+                            break;
+                        case "PATCH":
+                            request.type = ApiRequestType.Patch;
                             break;
                         case "DELETE":
                             request.type = ApiRequestType.Delete;
@@ -68,8 +92,16 @@ export class EllipseApiRouter extends Router {
                     let query = this.api.buildQuery(request);
                     console.log(query.steps);
                     query.execute()
-                        .then((res: ApiEdgeQueryResponse) => {
-                            this.json = res.data;
+                        .then((resp: ApiEdgeQueryResponse) => {
+                            this.json = resp.data;
+
+                            if(resp.metadata) {
+                                if(resp.metadata.pagination) {
+                                    let total = resp.metadata.pagination.total||0;
+                                    res.setHeader('X-Total-Count', page ? Math.ceil(total / limit) : total);
+                                }
+                            }
+
                             this.send()
                         })
                         .catch((e: any) => {

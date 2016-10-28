@@ -4,6 +4,7 @@ class MongooseModelEdge {
     constructor() {
         this.name = "entry";
         this.pluralName = "entries";
+        this.idField = "_id";
         this.methods = {};
         this.relations = [];
         this.inspect = () => `/${this.pluralName}`;
@@ -11,7 +12,7 @@ class MongooseModelEdge {
             return new Promise((resolve, reject) => {
                 let queryString = { _id: context.id };
                 this.applyFilters(queryString, context.filters);
-                let query = this.provider.findOne(queryString);
+                let query = this.provider.findOne(queryString).lean();
                 if (context.fields)
                     query.select(context.fields.join(' '));
                 query.then(entry => {
@@ -23,14 +24,27 @@ class MongooseModelEdge {
             return new Promise((resolve, reject) => {
                 let queryString = {};
                 this.applyFilters(queryString, context.filters);
-                let query = this.provider.find(queryString);
+                let query = this.provider.find(queryString).lean();
                 if (context.fields)
                     query.select(context.fields.join(' '));
-                if (context.pagination)
+                if (context.sortBy) {
+                    let sortOptions = {};
+                    context.sortBy.forEach((sort) => sortOptions["" + sort[0]] = sort[1]);
+                    query.sort(sortOptions);
+                }
+                if (context.pagination) {
                     query.limit(context.pagination.limit).skip(context.pagination.skip);
-                query.then(entries => {
-                    resolve(new api_core_1.ApiEdgeQueryResponse(entries));
-                }).catch(reject);
+                    this.provider.count(queryString).then(count => {
+                        query.then(entries => {
+                            resolve(new api_core_1.ApiEdgeQueryResponse(entries, { pagination: { total: count } }));
+                        }).catch(reject);
+                    });
+                }
+                else {
+                    query.then(entries => {
+                        resolve(new api_core_1.ApiEdgeQueryResponse(entries));
+                    }).catch(reject);
+                }
             });
         };
         this.createEntry = (context, body) => {
@@ -38,6 +52,23 @@ class MongooseModelEdge {
                 let query = this.provider.create(body);
                 query.then(entries => {
                     resolve(new api_core_1.ApiEdgeQueryResponse(entries));
+                }).catch(reject);
+            });
+        };
+        this.patchEntry = (context, body) => {
+            return new Promise((resolve, reject) => {
+                if (!context.id) {
+                    if (!body || (!body.id && !body._id))
+                        reject(new api_core_1.ApiEdgeError(400, "Missing ID"));
+                    context.id = body.id || body._id;
+                }
+                this.getEntry(context).then(resp => {
+                    let entry = resp.data;
+                    Object.keys(body).forEach(key => entry[key] = body[key]);
+                    let query = this.provider.update({ _id: entry._id || entry.id }, entry).lean();
+                    query.then((entry) => {
+                        resolve(new api_core_1.ApiEdgeQueryResponse(entry));
+                    }).catch(reject);
                 }).catch(reject);
             });
         };
@@ -51,7 +82,8 @@ class MongooseModelEdge {
                 this.getEntry(context).then(resp => {
                     let entry = resp.data;
                     Object.keys(body).forEach(key => entry[key] = body[key]);
-                    entry.save().then((entry) => {
+                    let query = this.provider.update({ id: entry._id || entry.id }, entry).lean();
+                    query.then((entry) => {
                         resolve(new api_core_1.ApiEdgeQueryResponse(entry));
                     }).catch(reject);
                 }).catch(reject);

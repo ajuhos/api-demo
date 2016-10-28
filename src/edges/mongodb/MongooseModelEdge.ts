@@ -5,8 +5,8 @@ export class MongooseModelEdge<T extends mongoose.Document> implements ApiEdgeDe
 
     name = "entry";
     pluralName = "entries";
-
-    protected provider: mongoose.Model<T>;
+    idField = "_id";
+    provider: mongoose.Model<T>;
 
     methods: any = {};
     relations = [];
@@ -47,7 +47,7 @@ export class MongooseModelEdge<T extends mongoose.Document> implements ApiEdgeDe
         return new Promise((resolve, reject) => {
             let queryString = { _id: context.id };
             this.applyFilters(queryString, context.filters);
-            let query = this.provider.findOne(queryString);
+            let query = this.provider.findOne(queryString).lean();
             if(context.fields) query.select(context.fields.join(' '));
             query.then(entry => {
                 resolve(new ApiEdgeQueryResponse(entry))
@@ -59,12 +59,26 @@ export class MongooseModelEdge<T extends mongoose.Document> implements ApiEdgeDe
         return new Promise((resolve, reject) => {
             let queryString = {};
             this.applyFilters(queryString, context.filters);
-            let query = this.provider.find(queryString);
+            let query = this.provider.find(queryString).lean();
             if(context.fields) query.select(context.fields.join(' '));
-            if(context.pagination) query.limit(context.pagination.limit).skip(context.pagination.skip);
-            query.then(entries => {
-                resolve(new ApiEdgeQueryResponse(entries))
-            }).catch(reject);
+            if(context.sortBy) {
+                let sortOptions: any = {};
+                context.sortBy.forEach((sort: any[]) => sortOptions[""+sort[0]] = sort[1]);
+                query.sort(sortOptions);
+            }
+            if(context.pagination) {
+                query.limit(context.pagination.limit).skip(context.pagination.skip);
+                this.provider.count(queryString).then(count => {
+                    query.then(entries => {
+                        resolve(new ApiEdgeQueryResponse(entries, { pagination: { total: count } }))
+                    }).catch(reject);
+                })
+            }
+            else {
+                query.then(entries => {
+                    resolve(new ApiEdgeQueryResponse(entries))
+                }).catch(reject);
+            }
         })
     };
 
@@ -74,6 +88,24 @@ export class MongooseModelEdge<T extends mongoose.Document> implements ApiEdgeDe
             query.then(entries => {
                 resolve(new ApiEdgeQueryResponse(entries))
             }).catch(reject);
+        })
+    };
+
+    patchEntry = (context: ApiEdgeQueryContext, body: any): Promise<ApiEdgeQueryResponse> => {
+        return new Promise<ApiEdgeQueryResponse>((resolve, reject) => {
+            if(!context.id) {
+                if(!body || (!body.id && !body._id)) reject(new ApiEdgeError(400, "Missing ID"));
+                context.id = body.id || body._id;
+            }
+
+            this.getEntry(context).then(resp => {
+                let entry = resp.data;
+                Object.keys(body).forEach(key => entry[key] = body[key]);
+                let query =this.provider.update({ _id: entry._id||entry.id }, entry).lean();
+                query.then((entry: T) => {
+                    resolve(new ApiEdgeQueryResponse(entry))
+                }).catch(reject);
+            }).catch(reject)
         })
     };
 
@@ -87,7 +119,8 @@ export class MongooseModelEdge<T extends mongoose.Document> implements ApiEdgeDe
             this.getEntry(context).then(resp => {
                 let entry = resp.data;
                 Object.keys(body).forEach(key => entry[key] = body[key]);
-                entry.save().then((entry: T) => {
+                let query =this.provider.update({ id: entry._id||entry.id }, entry).lean();
+                query.then((entry: T) => {
                     resolve(new ApiEdgeQueryResponse(entry))
                 }).catch(reject);
             }).catch(reject)

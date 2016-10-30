@@ -17,7 +17,10 @@ const studentEdge =
               lastName: String,
               email: String,
               phone: String,
-              schoolId: mongoose.Schema.Types.ObjectId,
+              schoolId: {
+                  ref: 'school',
+                  type: mongoose.Schema.Types.ObjectId
+              },
               classId: mongoose.Schema.Types.ObjectId
           }),
       classEdge =

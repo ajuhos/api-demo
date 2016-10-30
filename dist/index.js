@@ -12,7 +12,10 @@ const studentEdge = api_model_mongoose_1.MongooseModelFactory.createModel("stude
     lastName: String,
     email: String,
     phone: String,
-    schoolId: mongoose.Schema.Types.ObjectId,
+    schoolId: {
+        ref: 'school',
+        type: mongoose.Schema.Types.ObjectId
+    },
     classId: mongoose.Schema.Types.ObjectId
 }), classEdge = api_model_mongoose_1.MongooseModelFactory.createModel("class", "classes", {
     id: String,
